@@ -29,10 +29,42 @@ public class OL {
 	public void FindCommunities() throws FileNotFoundException, UnsupportedEncodingException{
 		for (double betta : betas){
 			Map<Integer,Set<Integer>> comms = FindCommunities(betta);
+			//Map<Integer,Set<Integer>> Anscomms = MergeSimilarComms(comms);
 			WriteToFile(comms, betta);
 		}
 	}
 	
+	private Map<Integer, Set<Integer>> MergeSimilarComms(Map<Integer, Set<Integer>> comms) {
+		Map<Integer, Set<Integer>> ans = new HashMap<Integer, Set<Integer>>();
+		int counter = 0;
+		List<Set<Integer>> commsArray = new ArrayList<Set<Integer>>(comms.values());
+		boolean WrotecommA = false;
+		for(int i = 0 ; i < commsArray.size() ; i++){
+			WrotecommA = false;
+			Set<Integer> commA = commsArray.get(i);
+			int commAsize = commA.size();
+			if (commAsize > 3){
+				for(int j = i+1 ; j < commsArray.size() ; j++){
+					Set<Integer> commB = commsArray.get(j);
+					int commBsize = commB.size();
+					if (commBsize > 3 && (double)Utills.IntersectionSize(commA, commB)/(double)Math.min(commAsize, commBsize) > alpha){
+						commB.addAll(commA);
+						ans.put(counter, commB);
+						counter++;
+						WrotecommA = true;
+						break;
+					}
+				}
+			}
+			if(!WrotecommA){
+				ans.put(counter, commA);
+				counter++;
+			}
+			
+		}
+		return ans;
+	}
+
 	private void WriteToFile(Map<Integer, Set<Integer>> comms, double betta) throws FileNotFoundException, UnsupportedEncodingException {
 		PrintWriter writer = new PrintWriter(outputPath + betta + ".txt", "UTF-8");
 		for ( Set<Integer> listOfNodes : comms.values()){
@@ -66,7 +98,10 @@ public class OL {
 	            Set<Integer> c_v_new =Keep_Best_Communities(comms_inc, betta);
 	            //metaData.Update_Weights_Add(c_v_new,node);
 	            Map<Integer[],Double> commsCouplesIntersectionRatio = metaData.SetCommsForNode(node, c_v_new);
-	            boolean haveMergedComms = FindAndMergeComms(commsCouplesIntersectionRatio);
+	            boolean haveMergedComms = false;
+	            if(amountOfScans>4){
+	            	haveMergedComms = FindAndMergeComms(commsCouplesIntersectionRatio);
+	            }
 	            if (!haveMergedComms && c_v_new.equals(c_v_original)){
 	            	isDone++;
 	            }
@@ -121,8 +156,6 @@ public class OL {
 	    ClearNodesFromComms(commsToClean);
 	    return haveMergedComms;
 	}
-
-
 
 	private void MergeComms(Integer[] commsToMerge){
 		Integer c1 = commsToMerge[0];
