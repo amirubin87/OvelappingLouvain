@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,5 +45,57 @@ public class Utills {
 	    }
 	    return ans;
 	}
+
+	public static Map<Integer, Double> CopyMapIntDouble(Map<Integer, Double> source) {
+		Map<Integer, Double> copy = new HashMap<Integer, Double>();
+		for( Entry<Integer, Double> entry: source.entrySet()){
+			copy.put(entry.getKey(), entry.getValue());
+		}
+		return copy;
+	}
+	
+	public static Map<Integer, Integer> CopyMapIntInt(Map<Integer, Integer> source) {
+		Map<Integer, Integer> copy = new HashMap<Integer, Integer>();
+		for( Entry<Integer, Integer> entry: source.entrySet()){
+			copy.put(entry.getKey(), entry.getValue());
+		}
+		return copy;
+	}
+
+	public static Map<Integer, Map<Integer, Double>> CopyMapIntMapIntDouble(Map<Integer, Map<Integer, Double>> source) {
+		Map<Integer, Map<Integer, Double>> copy = new HashMap<Integer, Map<Integer, Double>>();
+		for( Entry<Integer, Map<Integer, Double>> entry: source.entrySet()){
+			copy.put(entry.getKey(), CopyMapIntDouble(entry.getValue()));
+		}
+		return copy;
+	}
+
+	public static Map<Integer, Set<Integer>> CopyMapIntSet(Map<Integer, Set<Integer>> source) {
+		Map<Integer, Set<Integer>> copy = new HashMap<Integer, Set<Integer>>();
+		for( Entry<Integer, Set<Integer>> entry: source.entrySet()){
+			copy.put(entry.getKey(), CloneSet(entry.getValue()));
+		}
+		return copy;
+	}
+
+	public static Map<Integer, Map<Integer, Integer>> CopyMapIntMapIntInt(Map<Integer, Map<Integer, Integer>> source) {
+		Map<Integer, Map<Integer, Integer>> copy = new HashMap<Integer, Map<Integer, Integer>>();
+		for( Entry<Integer, Map<Integer, Integer>> entry: source.entrySet()){
+			copy.put(entry.getKey(), CopyMapIntInt(entry.getValue()));
+		}
+		return copy;
+	}
+	
+	public static <T> Set<T> CloneSet(Set<T> source) {
+		Set<T> copy = new HashSet<T>(source.size()); 
+		Iterator<T> iterator = source.iterator();
+		while(iterator.hasNext()){ 
+			copy.add((T) iterator.next()); 
+			}
+		return copy;
+	}
+	
+
+	
 
 }

@@ -12,57 +12,39 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class OL {
+	public GraphMetaData ORIGINALmetaData;
 	public GraphMetaData metaData;
 	public UndirectedUnweightedGraph g;
 	public double[] betas;
 	public double alpha;
 	public String outputPath;
+	public int iteratioNumToStartMerge;
+	public int maxIterationsToRun;
+	public String pathToGraph;
 	
-	public OL(String pathToGraph, double[]betas, double alpha, String outputPath) throws IOException{
+	public OL(String pathToGraph, double[]betas, double alpha, String outputPath, int iteratioNumToStartMerge, int maxIterationsToRun) throws IOException{
 		this.betas= betas;
 		this.alpha = alpha;
 		this.outputPath =outputPath;
+		this.iteratioNumToStartMerge = iteratioNumToStartMerge;
+		this.maxIterationsToRun = maxIterationsToRun;
+		this.pathToGraph = pathToGraph;
 		this.g = new UndirectedUnweightedGraph(Paths.get(pathToGraph));
-		this.metaData = new GraphMetaData(g);		
+		this.ORIGINALmetaData = new GraphMetaData(g);
+		
 	}
 	
 	public void FindCommunities() throws FileNotFoundException, UnsupportedEncodingException{
 		for (double betta : betas){
+			System.out.println("");
+			System.out.println("                       Input: " + pathToGraph);
+			System.out.println("                       betta: " + betta);
+			// Create a copy of the original meta data
+			metaData = new GraphMetaData(ORIGINALmetaData);			
 			Map<Integer,Set<Integer>> comms = FindCommunities(betta);
 			//Map<Integer,Set<Integer>> Anscomms = MergeSimilarComms(comms);
 			WriteToFile(comms, betta);
 		}
-	}
-	
-	private Map<Integer, Set<Integer>> MergeSimilarComms(Map<Integer, Set<Integer>> comms) {
-		Map<Integer, Set<Integer>> ans = new HashMap<Integer, Set<Integer>>();
-		int counter = 0;
-		List<Set<Integer>> commsArray = new ArrayList<Set<Integer>>(comms.values());
-		boolean WrotecommA = false;
-		for(int i = 0 ; i < commsArray.size() ; i++){
-			WrotecommA = false;
-			Set<Integer> commA = commsArray.get(i);
-			int commAsize = commA.size();
-			if (commAsize > 3){
-				for(int j = i+1 ; j < commsArray.size() ; j++){
-					Set<Integer> commB = commsArray.get(j);
-					int commBsize = commB.size();
-					if (commBsize > 3 && (double)Utills.IntersectionSize(commA, commB)/(double)Math.min(commAsize, commBsize) > alpha){
-						commB.addAll(commA);
-						ans.put(counter, commB);
-						counter++;
-						WrotecommA = true;
-						break;
-					}
-				}
-			}
-			if(!WrotecommA){
-				ans.put(counter, commA);
-				counter++;
-			}
-			
-		}
-		return ans;
 	}
 
 	private void WriteToFile(Map<Integer, Set<Integer>> comms, double betta) throws FileNotFoundException, UnsupportedEncodingException {
@@ -82,8 +64,8 @@ public class OL {
 	    int isDone = 0;
 	    int amountOfScans = 0;
 	    int n = g.number_of_nodes();
-	    while (isDone < n && amountOfScans < 100){
-	    	System.out.println("num of iter: " + amountOfScans);
+	    while (isDone < n && amountOfScans < maxIterationsToRun){
+	    	System.out.println("Input: " +pathToGraph + " betta: " + betta + "            Num of iter: " + amountOfScans);
 	        amountOfScans++;
 	        for (Integer node : g.nodes()){
 	            Set<Integer> c_v_original = metaData.node2coms.get(node);
@@ -99,7 +81,7 @@ public class OL {
 	            //metaData.Update_Weights_Add(c_v_new,node);
 	            Map<Integer[],Double> commsCouplesIntersectionRatio = metaData.SetCommsForNode(node, c_v_new);
 	            boolean haveMergedComms = false;
-	            if(amountOfScans>4){
+	            if(amountOfScans>iteratioNumToStartMerge){
 	            	haveMergedComms = FindAndMergeComms(commsCouplesIntersectionRatio);
 	            }
 	            if (!haveMergedComms && c_v_new.equals(c_v_original)){
@@ -110,7 +92,7 @@ public class OL {
 	            }
 	        }
         }    
-	    if (amountOfScans == 100){
+	    if (amountOfScans >= maxIterationsToRun){
 	        System.out.println("NOTICE - THE ALGORITHM HASNT STABLED. IT STOPPED AFTER SCANNING ALL NODES FOR N TIMES.");
 	    }
 	    return metaData.com2nodes;
@@ -175,6 +157,38 @@ public class OL {
 		for (Integer c : commsToClean){
 			metaData.SymbolicClearComm(c);
 		}		
+	}
+
+	
+	private Map<Integer, Set<Integer>> MergeSimilarComms(Map<Integer, Set<Integer>> comms) {
+		Map<Integer, Set<Integer>> ans = new HashMap<Integer, Set<Integer>>();
+		int counter = 0;
+		List<Set<Integer>> commsArray = new ArrayList<Set<Integer>>(comms.values());
+		boolean WrotecommA = false;
+		for(int i = 0 ; i < commsArray.size() ; i++){
+			WrotecommA = false;
+			Set<Integer> commA = commsArray.get(i);
+			int commAsize = commA.size();
+			if (commAsize > 3){
+				for(int j = i+1 ; j < commsArray.size() ; j++){
+					Set<Integer> commB = commsArray.get(j);
+					int commBsize = commB.size();
+					if (commBsize > 3 && (double)Utills.IntersectionSize(commA, commB)/(double)Math.min(commAsize, commBsize) > alpha){
+						commB.addAll(commA);
+						ans.put(counter, commB);
+						counter++;
+						WrotecommA = true;
+						break;
+					}
+				}
+			}
+			if(!WrotecommA){
+				ans.put(counter, commA);
+				counter++;
+			}
+			
+		}
+		return ans;
 	}
 
 }

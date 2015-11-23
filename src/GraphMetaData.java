@@ -21,7 +21,6 @@ public class GraphMetaData {
     	K_v_c = new HashMap<Integer, Map<Integer,Double>>();
     	Intersection_c1_c2 = new HashMap<Integer, Map<Integer,Integer>>();
     	Sigma_c = new HashMap<Integer, Double>();
-    	//Size_c = new HashMap<Integer, Integer>();
     	com2nodes = new HashMap<Integer, Set<Integer>>();
     	node2coms = new HashMap<Integer, Set<Integer>>();
     }
@@ -60,7 +59,18 @@ public class GraphMetaData {
         }
     }
         
-    public void ClearCommsOfNode(Integer node){
+    public GraphMetaData(GraphMetaData ORIGINALmetaData) {
+    	g=ORIGINALmetaData.g;
+    	m= ORIGINALmetaData.m;
+    	K_v = Utills.CopyMapIntDouble(ORIGINALmetaData.K_v);
+    	K_v_c = Utills.CopyMapIntMapIntDouble(ORIGINALmetaData.K_v_c);
+    	Intersection_c1_c2 = Utills.CopyMapIntMapIntInt(ORIGINALmetaData.Intersection_c1_c2);
+    	Sigma_c = Utills.CopyMapIntDouble(ORIGINALmetaData.Sigma_c);
+    	com2nodes = Utills.CopyMapIntSet(ORIGINALmetaData.com2nodes);
+    	node2coms = Utills.CopyMapIntSet(ORIGINALmetaData.node2coms);
+	}
+
+	public void ClearCommsOfNode(Integer node){
     	Set<Integer> commsSet = node2coms.get(node);
     	
     	// Update weights
